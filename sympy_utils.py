@@ -45,81 +45,78 @@ def site_subs(cutoff, Nsites):
     allSubs = {}
     
     for n in range(0,Nsites): 
-        allSubs[a[n]]=aMat(cutoff)
-        allSubs[adag[n]]=aDagMat(cutoff)
-        allSubs[x[n]]=xMat()
-        allSubs[xd[n]]=xDagMat()
+        allSubs[a[n]]=sp.Matrix(aMat(cutoff))
+        allSubs[adag[n]]=sp.Matrix(aDagMat(cutoff))
+        allSubs[x[n]]=sp.Matrix(xMat())
+        allSubs[xd[n]]=sp.Matrix(xDagMat())
         
     return allSubs
     
 
 
 
-def convert_to_matrix(expr, cutoff, buffer):
+def convert_to_matrix(expr, cutoff, Nsites):
     
-    new_expr = np.zeros([cutoff+buffer,cutoff+buffer])
+    fullHam = np.zeros([(cutoff**Nsites)*(2**Nsites),(cutoff**Nsites)*(2**Nsites)]).astype(np.complex64)
+    print(fullHam.shape)
 
-    if type(expr)==sp.core.add.Add:
-        for elem in expr.args:
-            new_expr = new_expr + convert_term_to_matrix(elem,cutoff+buffer)
-            
-    elif type(expr)==sp.core.mul.Mul:
-        tmp=convert_term_to_matrix(expr,cutoff+buffer)
-        new_expr = new_expr+tmp
-        
-    elif type(expr)==sp.core.numbers.Float:
-        new_expr = new_expr + convert_term_to_matrix(expr,cutoff+buffer)
-    else:
-        raise ValueError('Cannot convert type {} to matrix'.format(type(expr)))
+    for t in expr.args:
+        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites)
         
         
-    return np.array(new_expr.tolist())[:cutoff,:cutoff]
+    return fullHam
 
 
 
 
 
 def convert_term_to_matrix(term, cutoff, Nsites):
-
-    new_elem = np.eye(cutoff)
-    has_aadag = False
-    for elem in term.args:
-        for i in sp.preorder_traversal(elem):
-            if( type(i) is sp.tensor.indexed.Indexed ):
-                has_aadag=True
-    
-    if has_aadag and type(term)==sp.core.mul.Mul:
-        for elem in term.args:
-            is_operator = False
-
-            for i in sp.preorder_traversal(elem):
-                if( type(i) is sp.tensor.indexed.Indexed ):
-                    is_operator = True
-                
-            if is_operator:
-                lst = elem.args
-
-                print("ERROR: this needs to be done correctly...")
-                
-                if(len(lst)>1): # this should handle pow?
-                    for i in range(lst[1]):
-                        new_elem=np.matmul(new_elem,lst[0].subs(site_subs(cutoff, Nsites)))
-                else:
-
-                    new_elem=np.matmul(new_elem,elem.subs(site_subs(cutoff, Nsites))) 
-            else:
-
-                new_elem=elem*new_elem
-        
-        return new_elem
-    
-    elif has_aadag and type(term)!=sp.core.mul.Mul:
-        raise ValueError('Havent implemented doing convert_to_matrix for type {}'.format(type(term)))
-    
+    coef=1
+    if type(term.args[0])==sp.core.numbers.Float:
+        coef=term.args[0]
     else:
-        if(term.args==()):
-            new_elem=new_elem*term
+        raise TypeError("Expected coef found type {}".format(type(term.args[0])))
+
+    mats={}
+    for t in term.args[1:]:
+        boson=False
+        isPow=False
+        if type(t)==sp.core.power.Pow:
+            isPow=True
+            if hasattr(t.args[0],'name'):
+                if t.args[0].name[0]=='a':
+                    boson=True
+        if hasattr(t,'name'):
+            if t.name[0]=='a':
+                boson=True
+    
+        siteSubs = site_subs(cutoff,Nsites)
+    
+        if boson:
+            if isPow:
+                mats['b'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
+                    t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
+            else:
+                mats['b'+str(t.indices[0])]=np.array(
+                    t.subs(siteSubs).doit()).astype(np.complex64)
         else:
-            for elem in term.args:
-                new_elem=new_elem*elem
-        return new_elem*np.eye(cutoff)
+            if isPow:
+                mats['f'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
+                t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
+            else:
+                mats['f'+str(t.indices[0])]=np.array(
+                t.subs(siteSubs).doit()).astype(np.complex64)
+
+    fullMat=1
+    for i in range(Nsites):
+        if 'b'+str(i) in mats:
+            fullMat=np.kron(fullMat,mats['b'+str(i)])
+        else:
+            fullMat=np.kron(fullMat,np.eye(cutoff))
+    
+        if 'f'+str(i) in mats:
+            fullMat=np.kron(fullMat,mats['f'+str(i)])
+        else:
+            fullMat=np.kron(fullMat,np.eye(2))
+
+    return coef*fullMat    
