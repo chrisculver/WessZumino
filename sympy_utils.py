@@ -56,13 +56,11 @@ def site_subs(cutoff, Nsites):
 
 
 def convert_to_matrix(expr, cutoff, Nsites):
-    
+    print("Warning: Not using a buffer!")
     fullHam = np.zeros([(cutoff**Nsites)*(2**Nsites),(cutoff**Nsites)*(2**Nsites)]).astype(np.complex64)
-    print(fullHam.shape)
 
     for t in expr.args:
         fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites)
-        
         
     return fullHam
 
@@ -72,10 +70,10 @@ def convert_to_matrix(expr, cutoff, Nsites):
 
 def convert_term_to_matrix(term, cutoff, Nsites):
     coef=1
-    if type(term.args[0])==sp.core.numbers.Float:
+    if getattr(term.args[0],'__module__', None)=='sympy.core.numbers':
         coef=term.args[0]
     else:
-        raise TypeError("Expected coef found type {}".format(type(term.args[0])))
+        raise TypeError("Expected sp.core.numbers found type {}".format(type(term.args[0])))
 
     mats={}
     for t in term.args[1:]:
@@ -93,9 +91,8 @@ def convert_term_to_matrix(term, cutoff, Nsites):
         siteSubs = site_subs(cutoff,Nsites)
     
         if boson:
-            if isPow:
-                mats['b'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
-                    t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
+            if isPow:                mats['b'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
+                        t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
             else:
                 mats['b'+str(t.indices[0])]=np.array(
                     t.subs(siteSubs).doit()).astype(np.complex64)
