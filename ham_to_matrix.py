@@ -61,7 +61,7 @@ def convert_to_matrix(expr, cutoff, Nsites):
 
     # convert each term to matrix and sum up
     for t in expr.args:
-        fullHam=fullHam+convert_term_to_matrix(t,cutoff+buffer,Nsites)
+        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites)
         
     # now need to drop all the buffers...
     #for i
@@ -117,17 +117,25 @@ def convert_term_to_matrix(term, cutoff, Nsites):
                 mats['f'+str(t.indices[0])]=np.array(
                 t.subs(siteSubs).doit()).astype(np.complex64)
 
-    fullMat=1
-
+    fullMat=np.eye((cutoff**Nsites)*(2**Nsites)).astype(np.complex64)
     for i in range(Nsites):
-        if 'b'+str(i) in mats:
-            fullMat=np.kron(fullMat,mats['b'+str(i)])
+        if i==0:
+            offset=0
         else:
-            fullMat=np.kron(fullMat,np.eye(cutoff))
+            offset=((cutoff**i)*(2**i))
+        
+        if 'b'+str(i) in mats:
+            fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
+            #fullMat=np.kron(fullMat,mats['b'+str(i)])
+        #else:
+        #    fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
+        #    #fullMat=np.kron(fullMat,np.eye(cutoff))
     
         if 'f'+str(i) in mats:
-            fullMat=np.kron(fullMat,mats['f'+str(i)])
-        else:
-            fullMat=np.kron(fullMat,np.eye(2))
+            offset+=2
+            fullMat[offset:offset+2,offset:offset+2]=mats['f'+str(i)]
+            #fullMat=np.kron(fullMat,mats['f'+str(i)])
+        #else:
+            #fullMat=np.kron(fullMat,np.eye(2))
 
     return coef*fullMat    
