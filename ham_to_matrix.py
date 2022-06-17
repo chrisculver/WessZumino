@@ -56,13 +56,17 @@ def site_subs(cutoff, Nsites):
 
 
 def convert_to_matrix(expr, cutoff, Nsites):
-    print("Warning: Not using a buffer!")
+    # start with a matrix of zeros
     fullHam = np.zeros([(cutoff**Nsites)*(2**Nsites),(cutoff**Nsites)*(2**Nsites)]).astype(np.complex64)
 
+    # convert each term to matrix and sum up
     for t in expr.args:
-        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites)
+        fullHam=fullHam+convert_term_to_matrix(t,cutoff+buffer,Nsites)
         
-    return fullHam
+    # now need to drop all the buffers...
+    #for i
+        
+    return fullHam.astype(complex)
 
 
 
@@ -87,24 +91,34 @@ def convert_term_to_matrix(term, cutoff, Nsites):
         if hasattr(t,'name'):
             if t.name[0]=='a':
                 boson=True
-    
+        
         siteSubs = site_subs(cutoff,Nsites)
     
         if boson:
-            if isPow:                mats['b'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
-                        t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
+            if isPow:              
+                siteSubs = site_subs(cutoff+t.args[1],Nsites)
+                #print(siteSubs)
+                mats['b'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
+                        t.args[0].subs(siteSubs).doit()).astype(np.complex64),t.args[1])[:cutoff,:cutoff]
+            
             else:
+                siteSubs = site_subs(cutoff,Nsites)
                 mats['b'+str(t.indices[0])]=np.array(
                     t.subs(siteSubs).doit()).astype(np.complex64)
         else:
             if isPow:
+                siteSubs = site_subs(cutoff,Nsites)
+                print("Warning: raising grassman to a power")
                 mats['f'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
                 t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
+            
             else:
+                siteSubs = site_subs(cutoff,Nsites)
                 mats['f'+str(t.indices[0])]=np.array(
                 t.subs(siteSubs).doit()).astype(np.complex64)
 
     fullMat=1
+
     for i in range(Nsites):
         if 'b'+str(i) in mats:
             fullMat=np.kron(fullMat,mats['b'+str(i)])

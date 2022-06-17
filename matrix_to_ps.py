@@ -25,6 +25,8 @@ def matrix_to_pauli_strings(matrix, encoding):
             #print('convert_element check:')
             #print('  args: m[i][j]={}, i={}, j={}, N={}, encoding={}'.format(matrix[i][j],i,j,N,encoding))
             #print('  res: {}'.format(convert_element(matrix[i][j],i,j,N,encoding)))
+            
+            # TODO: optimize could check matrix[i][j] is non-zero
             pauli_strings += convert_element(matrix[i][j], i, j, N, encoding)
     
     return pauli_strings
