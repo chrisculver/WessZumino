@@ -57,7 +57,7 @@ def site_subs(cutoff, Nsites):
 
 def convert_to_matrix(expr, cutoff, Nsites):
     # start with a matrix of zeros
-    fullHam = np.zeros([(cutoff**Nsites)*(2**Nsites),(cutoff**Nsites)*(2**Nsites)]).astype(np.complex64)
+    fullHam = np.zeros([(cutoff**Nsites),(cutoff**Nsites)]).astype(np.complex64)
 
     # convert each term to matrix and sum up
     for t in expr.args:
@@ -120,25 +120,9 @@ def convert_term_to_matrix(term, cutoff, Nsites):
     #fullMat=np.eye((cutoff**Nsites)*(2**Nsites)).astype(np.complex64)
     fullMat=1
     for i in range(Nsites):
-    #    if i==0:
-    #        offset=0
-    #    else:
-    #        offset=((cutoff**i)*(2**i))
-        
         if 'b'+str(i) in mats:
-    #        fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
             fullMat=np.kron(fullMat,mats['b'+str(i)])
         else:
-        #    fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
             fullMat=np.kron(fullMat,np.eye(cutoff))
-    
-        if 'f'+str(i) in mats:
-        #    offset+=2
-        #    fullMat[offset:offset+2,offset:offset+2]=mats['f'+str(i)]
-            fullMat=np.kron(fullMat,mats['f'+str(i)])
-        else:
-            #fullMat=np.kron(fullMat,np.eye(2))
-            fullMat=np.kron(fullMat,np.eye(2))
-
             
     return coef*fullMat    
