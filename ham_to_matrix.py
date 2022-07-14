@@ -41,27 +41,27 @@ def xDagMat():
 
 
 
-def site_subs(cutoff, Nsites):
+def site_subs(cutoff, Nsites, aops, adags):
     allSubs = {}
     
-    for n in range(0,Nsites): 
-        allSubs[a[n]]=sp.Matrix(aMat(cutoff))
-        allSubs[adag[n]]=sp.Matrix(aDagMat(cutoff))
-        allSubs[x[n]]=sp.Matrix(xMat())
-        allSubs[xd[n]]=sp.Matrix(xDagMat())
+    for n in range(-1,Nsites+1): 
+        allSubs[aops[n]]=sp.Matrix(aMat(cutoff))
+        allSubs[adags[n]]=sp.Matrix(aDagMat(cutoff))
+        #allSubs[x[n]]=sp.Matrix(xMat())
+        #allSubs[xd[n]]=sp.Matrix(xDagMat())
         
     return allSubs
     
 
 
 
-def convert_to_matrix(expr, cutoff, Nsites):
+def convert_to_matrix(expr, cutoff, Nsites, aops, adags):
     # start with a matrix of zeros
     fullHam = np.zeros([(cutoff**Nsites)*(2**Nsites),(cutoff**Nsites)*(2**Nsites)]).astype(np.complex64)
 
     # convert each term to matrix and sum up
     for t in expr.args:
-        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites)
+        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites, aops, adags)
         
     # now need to drop all the buffers...
     #for i
@@ -72,15 +72,16 @@ def convert_to_matrix(expr, cutoff, Nsites):
 
 
 
-def convert_term_to_matrix(term, cutoff, Nsites):
+def convert_term_to_matrix(term, cutoff, Nsites, aops, adags):
     coef=1
+    start=0
+    
     if getattr(term.args[0],'__module__', None)=='sympy.core.numbers':
         coef=term.args[0]
-    else:
-        raise TypeError("Expected sp.core.numbers found type {}".format(type(term.args[0])))
-
+        start=1
+        
     mats={}
-    for t in term.args[1:]:
+    for t in term.args[start:]:
         boson=False
         isPow=False
         if type(t)==sp.core.power.Pow:
@@ -92,29 +93,29 @@ def convert_term_to_matrix(term, cutoff, Nsites):
             if t.name[0]=='a':
                 boson=True
         
-        siteSubs = site_subs(cutoff,Nsites)
+        siteSubs = site_subs(cutoff,Nsites, aops, adags)
     
         if boson:
             if isPow:              
-                siteSubs = site_subs(cutoff+t.args[1],Nsites)
+                siteSubs = site_subs(cutoff+t.args[1],Nsites, aops, adags)
                 #print(siteSubs)
-                mats['b'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
+                mats['b'+str(t.args[0].site)]=np.linalg.matrix_power(np.array(
                         t.args[0].subs(siteSubs).doit()).astype(np.complex64),t.args[1])[:cutoff,:cutoff]
             
             else:
-                siteSubs = site_subs(cutoff,Nsites)
-                mats['b'+str(t.indices[0])]=np.array(
+                siteSubs = site_subs(cutoff,Nsites, aops, adags)
+                mats['b'+str(t.site)]=np.array(
                     t.subs(siteSubs).doit()).astype(np.complex64)
         else:
             if isPow:
-                siteSubs = site_subs(cutoff,Nsites)
+                siteSubs = site_subs(cutoff,Nsites, aops, adags)
                 print("Warning: raising grassman to a power")
-                mats['f'+str(t.args[0].indices[0])]=np.linalg.matrix_power(np.array(
+                mats['f'+str(t.args[0].site)]=np.linalg.matrix_power(np.array(
                 t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
             
             else:
-                siteSubs = site_subs(cutoff,Nsites)
-                mats['f'+str(t.indices[0])]=np.array(
+                siteSubs = site_subs(cutoff,Nsites, aops, adags)
+                mats['f'+str(t.site)]=np.array(
                 t.subs(siteSubs).doit()).astype(np.complex64)
 
     #fullMat=np.eye((cutoff**Nsites)*(2**Nsites)).astype(np.complex64)
