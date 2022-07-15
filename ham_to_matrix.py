@@ -175,49 +175,44 @@ def convert_boson_term_to_matrix(term, cutoff, Nsites, aops, adags):
     if getattr(term.args[0],'__module__', None)=='sympy.core.numbers':
         coef=term.args[0]
         start=1
-        
-    mats={}
+    
+    prodMatrix = np.eye(cutoff**Nsites).astype(np.complex64)
+    
+    buffer=0
+    siteSubs = site_subs(cutoff+buffer, Nsites, aops, adags)
+    
     for t in term.args[start:]:
-        boson=False
+        
         isPow=False
         if type(t)==sp.core.power.Pow:
             isPow=True
-            if hasattr(t.args[0],'name'):
-                if t.args[0].name[0]=='a':
-                    boson=True
-        if hasattr(t,'name'):
-            if t.name[0]=='a':
-                boson=True
         
-        siteSubs = site_subs(cutoff,Nsites, aops, adags)
-    
-        if boson:
-            if isPow:              
-                siteSubs = site_subs(cutoff+t.args[1],Nsites, aops, adags)
-                #print(siteSubs)
-                mats['b'+str(t.args[0].site)]=np.linalg.matrix_power(np.array(
-                        t.args[0].subs(siteSubs).doit()).astype(np.complex64),t.args[1])[:cutoff,:cutoff]
+        site=None
+        siteMatrix=None
+        
+        if isPow:
+            siteMatrix = siteSubs[t.args[0]]
+            site = t.args[0].site
+            siteMatrix = np.linalg.matrix_power(siteMatrix,t.args[1])
+        else:
+            siteMatrix = siteSubs[t]
+            site = t.site
             
+        #print("site={}, siteMatrix={}".format(site, siteMatrix))    
+        
+        fullMatrix=1
+        for i in range(0,Nsites):
+            if site==str(i):
+                fullMatrix=np.kron(fullMatrix,siteMatrix)
             else:
-                siteSubs = site_subs(cutoff,Nsites, aops, adags)
-                mats['b'+str(t.site)]=np.array(
-                    t.subs(siteSubs).doit()).astype(np.complex64)
-        else:
-            print("non-boson term??!?!?!")
+                fullMatrix=np.kron(fullMatrix,np.eye(cutoff))
+        
+        #print("fullMatrix={}".format(fullMatrix))
+        
+        prodMatrix=np.matmul(prodMatrix,fullMatrix)
+        
+        #print("prodMatrix={}".format(prodMatrix))
+        
+    return coef*prodMatrix
             
-    #fullMat=np.eye((cutoff**Nsites)*(2**Nsites)).astype(np.complex64)
-    fullMat=1
-    for i in range(Nsites):
-    #    if i==0:
-    #        offset=0
-    #    else:
-    #        offset=((cutoff**i)*(2**i))
-        if 'b'+str(i) in mats:
-            print(mats['b'+str(i)])
-    #        fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
-            fullMat=np.kron(fullMat,mats['b'+str(i)])
-        else:
-        #    fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
-            fullMat=np.kron(fullMat,np.eye(cutoff))
             
-    return coef*fullMat    
