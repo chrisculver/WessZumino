@@ -73,76 +73,7 @@ def convert_to_matrix(expr, cutoff, Nsites, aops, adags):
 
 
 def convert_term_to_matrix(term, cutoff, Nsites, aops, adags):
-    coef=1
-    start=0
-    
-    if getattr(term.args[0],'__module__', None)=='sympy.core.numbers':
-        coef=term.args[0]
-        start=1
-        
-    mats={}
-    for t in term.args[start:]:
-        boson=False
-        isPow=False
-        if type(t)==sp.core.power.Pow:
-            isPow=True
-            if hasattr(t.args[0],'name'):
-                if t.args[0].name[0]=='a':
-                    boson=True
-        if hasattr(t,'name'):
-            if t.name[0]=='a':
-                boson=True
-        
-        siteSubs = site_subs(cutoff,Nsites, aops, adags)
-    
-        if boson:
-            if isPow:              
-                siteSubs = site_subs(cutoff+t.args[1],Nsites, aops, adags)
-                #print(siteSubs)
-                mats['b'+str(t.args[0].site)]=np.linalg.matrix_power(np.array(
-                        t.args[0].subs(siteSubs).doit()).astype(np.complex64),t.args[1])[:cutoff,:cutoff]
-            
-            else:
-                siteSubs = site_subs(cutoff,Nsites, aops, adags)
-                mats['b'+str(t.site)]=np.array(
-                    t.subs(siteSubs).doit()).astype(np.complex64)
-        else:
-            if isPow:
-                siteSubs = site_subs(cutoff,Nsites, aops, adags)
-                print("Warning: raising grassman to a power")
-                mats['f'+str(t.args[0].site)]=np.linalg.matrix_power(np.array(
-                t.subs(siteSubs).doit()).astype(np.complex64),t.args[1])
-            
-            else:
-                siteSubs = site_subs(cutoff,Nsites, aops, adags)
-                mats['f'+str(t.site)]=np.array(
-                t.subs(siteSubs).doit()).astype(np.complex64)
-
-    #fullMat=np.eye((cutoff**Nsites)*(2**Nsites)).astype(np.complex64)
-    fullMat=1
-    for i in range(Nsites):
-    #    if i==0:
-    #        offset=0
-    #    else:
-    #        offset=((cutoff**i)*(2**i))
-        
-        if 'b'+str(i) in mats:
-    #        fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
-            fullMat=np.kron(fullMat,mats['b'+str(i)])
-        else:
-        #    fullMat[offset:offset+cutoff,offset:offset+cutoff]=mats['b'+str(i)]
-            fullMat=np.kron(fullMat,np.eye(cutoff))
-    
-        if 'f'+str(i) in mats:
-        #    offset+=2
-        #    fullMat[offset:offset+2,offset:offset+2]=mats['f'+str(i)]
-            fullMat=np.kron(fullMat,mats['f'+str(i)])
-        else:
-            #fullMat=np.kron(fullMat,np.eye(2))
-            fullMat=np.kron(fullMat,np.eye(2))
-
-            
-    return coef*fullMat    
+    raise NotImplementedError("Still working on bosons")   
 
 
 
@@ -165,9 +96,7 @@ def convert_boson_to_matrix(expr, cutoff, Nsites, aops, adags):
 
 
 
-# This is WRONG!
-# need to multiply from left to right no just kron everything.
-# this doesn't handle ad0 a1 a0 a1d ad0^3 a1 a1d
+# This is inefficient.
 def convert_boson_term_to_matrix(term, cutoff, Nsites, aops, adags):
     coef=1
     start=0
@@ -175,12 +104,12 @@ def convert_boson_term_to_matrix(term, cutoff, Nsites, aops, adags):
     if getattr(term.args[0],'__module__', None)=='sympy.core.numbers':
         coef=term.args[0]
         start=1
-    
-    prodMatrix = np.eye(cutoff**Nsites).astype(np.complex64)
-    
+
     buffer=0
+    prodMatrix = np.eye((cutoff+buffer)**Nsites).astype(np.complex64)
     siteSubs = site_subs(cutoff+buffer, Nsites, aops, adags)
     
+    #print(term)
     for t in term.args[start:]:
         
         isPow=False
@@ -205,14 +134,17 @@ def convert_boson_term_to_matrix(term, cutoff, Nsites, aops, adags):
             if site==str(i):
                 fullMatrix=np.kron(fullMatrix,siteMatrix)
             else:
-                fullMatrix=np.kron(fullMatrix,np.eye(cutoff))
+                fullMatrix=np.kron(fullMatrix,np.eye(cutoff+buffer))
         
         #print("fullMatrix={}".format(fullMatrix))
         
         prodMatrix=np.matmul(prodMatrix,fullMatrix)
         
         #print("prodMatrix={}".format(prodMatrix))
-        
+    
+    
+    # TODO if there's a buffer what's the right way 
+    # to slice the matrix.
     return coef*prodMatrix
             
             
