@@ -21,11 +21,9 @@ class SiteSymbol(sp.Symbol):
 # make new objects with description
 pn = SiteSymbol('p','n')
 qn = SiteSymbol('q','n')
+qnP1 = SiteSymbol('q','n+1')
+qnM1 = SiteSymbol('q','n-1')
 
-
-p=sp.IndexedBase('p',commutative=False)
-q=sp.IndexedBase('q',commutative=False)
-x=sp.IndexedBase('\chi',commutative=False)
-xd=sp.IndexedBase('\chi^{\dagger}',commutative=False)
-a = sp.IndexedBase('a',commutative=False)
-adag = sp.IndexedBase('a^{\dagger}',commutative=False)
+xn=SiteSymbol('\chi','n')
+xdn=SiteSymbol('\chi^{\dagger}','n')
+xdnP1=SiteSymbol('\chi^{\dagger}','n+1')

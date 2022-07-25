@@ -10,11 +10,6 @@ pauliX = np.array([[0,1],[1,0]])
 pauliY = np.array([[0,-1j],[1j,0]])
 pauliZ = np.array([[1,0],[0,-1]])
 
-a = sp.IndexedBase('a',commutative=False)
-adag = sp.IndexedBase('a^{\dagger}',commutative=False)
-x=sp.IndexedBase('\chi',commutative=False)
-xd=sp.IndexedBase('\chi^{\dagger}',commutative=False)
-
 def a_element(i,j):
     if(i-1 == j):
         return math.sqrt(i)
@@ -41,27 +36,25 @@ def xDagMat():
 
 
 
-def site_subs(cutoff, Nsites, aops, adags):
+def site_subs(cutoff, Nsites, aops, adags, xs, xdags):
     allSubs = {}
     
     for n in range(-1,Nsites+1): 
         allSubs[aops[n]]=sp.Matrix(aMat(cutoff))
         allSubs[adags[n]]=sp.Matrix(aDagMat(cutoff))
-        #allSubs[x[n]]=sp.Matrix(xMat())
-        #allSubs[xd[n]]=sp.Matrix(xDagMat())
+        allSubs[xs[n]]=sp.Matrix(xMat())
+        allSubs[xdags[n]]=sp.Matrix(xDagMat())
         
     return allSubs
     
 
-
-
-def convert_to_matrix(expr, cutoff, Nsites, aops, adags):
+def convert_to_matrix(expr, cutoff, Nsites, aops, adags, xs, xdags):
     # start with a matrix of zeros
     fullHam = np.zeros([(cutoff**Nsites)*(2**Nsites),(cutoff**Nsites)*(2**Nsites)]).astype(np.complex64)
 
     # convert each term to matrix and sum up
     for t in expr.args:
-        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites, aops, adags)
+        fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites, aops, adags, xs, xdags)
         
     # now need to drop all the buffers...
     #for i
@@ -69,11 +62,72 @@ def convert_to_matrix(expr, cutoff, Nsites, aops, adags):
     return fullHam
 
 
+def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
+    coef=1
+    start=0
+    
+    if getattr(term.args[0],'__module__', None)=='sympy.core.numbers':
+        coef=term.args[0]
+        start=1
 
+    buffer=0
+    prodMatrix = np.eye(((cutoff+buffer)**Nsites)*(2**Nsites)).astype(np.complex64)
+    print(prodMatrix.shape)
+    siteSubs = site_subs(cutoff+buffer, Nsites, aops, adags, xs, xdags)
+    
+    #print(term)
+    
+    # more efficient way is to group terms by site, multiple those small matrices
+    # then kron product them.
+    for t in term.args[start:]:
+        isPow=False
+        isBoson=False
+        
+        if type(t)==sp.core.power.Pow:
+            isPow=True
+        
+        site=None
+        siteMatrix=None
+        
+        if isPow:
+            siteMatrix = siteSubs[t.args[0]]
+            site = t.args[0].site
+            siteMatrix = np.linalg.matrix_power(siteMatrix,t.args[1])
+            if t.args[0].name[0]=='a':
+                isBoson=True
+        else:
+            siteMatrix = siteSubs[t]
+            site = t.site
+            if t.name[0]=='a':
+                isBoson=True
+            
+        #print("site={}, siteMatrix={}".format(site, siteMatrix))    
+        
+        fullMatrix=1
+        for i in range(0,Nsites):            
+            if site==str(i):
+                if isBoson:
+                    fullMatrix=np.kron(fullMatrix,siteMatrix)
+                    fullMatrix=np.kron(fullMatrix,np.eye(2))
+                else:
+                    fullMatrix=np.kron(np.eye(cutoff+buffer))
+                    fullMatrix=np.kron(fullMatrix,siteMatrix)
+            else:
+                fullMatrix=np.kron(fullMatrix,np.eye(cutoff+buffer))
+                fullMatrix=np.kron(fullMatrix,np.eye(2))
+            
+        
+        #print("fullMatrix={}".format(fullMatrix))
 
+        prodMatrix=np.matmul(prodMatrix,fullMatrix)
+        
+        #print("prodMatrix={}".format(prodMatrix))
+    
+    
+    # TODO if there's a buffer what's the right way 
+    # to slice the matrix.
+    return coef*prodMatrix
 
-def convert_term_to_matrix(term, cutoff, Nsites, aops, adags):
-    raise NotImplementedError("Still working on bosons")   
 
 
 
