@@ -25,5 +25,6 @@ qnP1 = SiteSymbol('q','n+1')
 qnM1 = SiteSymbol('q','n-1')
 
 xn=SiteSymbol('\chi','n')
+xnP1=SiteSymbol('\chi','n+1')
 xdn=SiteSymbol('\chi^{\dagger}','n')
 xdnP1=SiteSymbol('\chi^{\dagger}','n+1')
