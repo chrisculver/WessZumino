@@ -80,6 +80,11 @@ def convert_to_matrix(expr, cutoff, Nsites, aops, adags, xs, xdags):
 
 
 def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
+    buffer=0
+    prodMatrix = np.eye(((cutoff+buffer)**Nsites)*(2**Nsites)).astype(np.complex64)    
+    
+    if len(term.args)==0:
+        return term*prodMatrix
     
     #setupTimer=Timer('setup')
     #setupTimer.start()
@@ -90,8 +95,6 @@ def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
         coef=term.args[0]
         start=1
 
-    buffer=0
-    prodMatrix = np.eye(((cutoff+buffer)**Nsites)*(2**Nsites)).astype(np.complex64)
     #print(prodMatrix.shape)
     siteSubs = site_subs(cutoff+buffer, Nsites, aops, adags, xs, xdags)
     #setupTimer.stop()
@@ -99,6 +102,7 @@ def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
     
     # more efficient way is to group terms by site, multiple those small matrices
     # then kron product them.
+    
     for t in term.args[start:]:
         #tSetupTimer=Timer(str(t) + 'setup')
         #tSetupTimer.start()
