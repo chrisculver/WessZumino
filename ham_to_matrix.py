@@ -69,10 +69,10 @@ def convert_to_matrix(expr, cutoff, Nsites, aops, adags, xs, xdags):
 
     # convert each term to matrix and sum up
     for t in expr.args:
-        timer=Timer(str(t)+' to matrix')
-        timer.start()
+        #timer=Timer(str(t)+' to matrix')
+        #timer.start()
         fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites, aops, adags, xs, xdags)
-        timer.stop()
+        #timer.stop()
     # now need to drop all the buffers...
     #for i
         
@@ -80,14 +80,15 @@ def convert_to_matrix(expr, cutoff, Nsites, aops, adags, xs, xdags):
 
 
 def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
+    #setupTimer=Timer('setup')
+    #setupTimer.start()
+    
     buffer=0
     prodMatrix = np.eye(((cutoff+buffer)**Nsites)*(2**Nsites)).astype(np.complex64)    
     
     if len(term.args)==0:
         return term*prodMatrix
-    
-    #setupTimer=Timer('setup')
-    #setupTimer.start()
+
     coef=1
     start=0
     
@@ -97,6 +98,7 @@ def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
 
     #print(prodMatrix.shape)
     siteSubs = site_subs(cutoff+buffer, Nsites, aops, adags, xs, xdags)
+    
     #setupTimer.stop()
     #print(term)
     
@@ -133,6 +135,7 @@ def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
         #tFullTimer=Timer(str(t) + 'full')
         #tFullTimer.start()
         fullMatrix=1
+        
         for i in range(0,Nsites):            
             if site==str(i):
                 if isBoson:
@@ -147,7 +150,10 @@ def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
             
         fullMatrix=fullMatrix.astype(np.complex64)
         #tFullTimer.stop()
-        #print("fullMatrix={}".format(fullMatrix))
+        
+        
+        
+        ##print("fullMatrix={}".format(fullMatrix))
         #tMultTimer=Timer(str(t)+'multiply')
         #tMultTimer.start()
         #print(prodMatrix.shape,fullMatrix.shape)
