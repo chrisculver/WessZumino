@@ -69,10 +69,10 @@ def convert_to_matrix(expr, cutoff, Nsites, aops, adags, xs, xdags):
 
     # convert each term to matrix and sum up
     for t in expr.args:
-        #timer=Timer(str(t)+' to matrix')
-        #timer.start()
+        timer=Timer(str(t)+' to matrix')
+        timer.start()
         fullHam=fullHam+convert_term_to_matrix(t,cutoff,Nsites, aops, adags, xs, xdags)
-        #timer.stop()
+        timer.stop()
     # now need to drop all the buffers...
     #for i
         
