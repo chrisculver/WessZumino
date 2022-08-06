@@ -8,7 +8,7 @@ import sympy as sp
         
 n=sp.symbols('n')
 aLat=sp.symbols('a')
-V=sp.Function('V')
+V=sp.Function('V', commutative=False)
 
 # my custom class with description attribute
 class SiteSymbol(sp.Symbol):
