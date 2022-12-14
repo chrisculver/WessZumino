@@ -1,6 +1,6 @@
-from sympy import symbols, expand
+from sympy import symbols, expand, simplify
 from collections import defaultdict
-
+import scipy
 
 def basis_to_pauli_string(i, j, q):
     if(i=='0' and j=='0'):
@@ -17,19 +17,13 @@ def basis_to_pauli_string(i, j, q):
 
 
 def matrix_to_pauli_strings(matrix, encoding):
-    #row-col ordering, m[i][j] i-th row, j-th col
-    N = len(matrix)
+    tst=scipy.sparse.coo_matrix(matrix)
     pauli_strings=0
-    for i in range(0, N):
-        for j in range(0, N):
-            #print('convert_element check:')
-            #print('  args: m[i][j]={}, i={}, j={}, N={}, encoding={}'.format(matrix[i][j],i,j,N,encoding))
-            #print('  res: {}'.format(convert_element(matrix[i][j],i,j,N,encoding)))
-            
-            # TODO: optimize could check matrix[i][j] is non-zero
-            pauli_strings += convert_element(matrix[i][j], i, j, N, encoding)
-    
-    return pauli_strings
+    for i,j,v in zip(tst.row, tst.col, tst.data):
+        pauli_strings += convert_element(v, i, j, matrix.shape[0], encoding)
+        #pauli_strings=simplify(pauli_strings)
+        # really slow to do for every element, maybe do every so often?
+    return simplify(pauli_strings)
 
 
 def convert_element(elem, i, j, N, encoding):
