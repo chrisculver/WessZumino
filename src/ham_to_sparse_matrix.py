@@ -94,7 +94,7 @@ def convert_term_to_matrix(term, cutoff, Nsites, aops, adags, xs, xdags):
     #print("prod Start=",prodMatrix)
     
     if len(term.args)==0:
-        return term*prodMatrix
+        return float(term)*prodMatrix
 
     coef=1
     start=0

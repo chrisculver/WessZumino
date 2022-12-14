@@ -6,7 +6,7 @@ import numpy as np
 import copy
 import math
 
-from timer import Timer
+from src.timer import Timer
 
 pauliX = np.array([[0,1],[1,0]])
 pauliY = np.array([[0,-1j],[1j,0]])
