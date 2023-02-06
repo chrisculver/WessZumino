@@ -155,7 +155,7 @@ if not math.log2(hamMat.shape[0]).is_integer():
 
 ansatz = RealAmplitudes(nq, reps=cutoff)
 
-
+    
 vqe = VQE(ansatz=ansatz, optimizer=COBYLA(), quantum_instance=qinstance)
 results=[]
 for i in range(vqeShots):
