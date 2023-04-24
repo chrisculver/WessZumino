@@ -16,7 +16,7 @@ import scipy.sparse.linalg
 
 N=2
 hoHam,aops, adags, xs, xdags = get_sympy_ham(N)
-cutoff=4 # 8 is more then a minute?
+cutoff=8 # 8 is more then a minute?
 hamMat=convert_to_matrix(hoHam,cutoff,N,aops,adags,xs,xdags)
 
 t=Timer("Matrix to PS")
