@@ -17,6 +17,7 @@ def basis_to_pauli_string(i, j, q):
 
 
 def matrix_to_pauli_strings(matrix, encoding):
+    print("OLD METHOD-VERYSLOW")
     tst=scipy.sparse.coo_matrix(matrix)
     pauli_strings=0
     for i,j,v in zip(tst.row, tst.col, tst.data):
@@ -24,7 +25,7 @@ def matrix_to_pauli_strings(matrix, encoding):
         #pauli_strings=simplify(pauli_strings)
         # really slow to do for every element, maybe do every so often?
     return simplify(pauli_strings)
-
+        
 
 def convert_element(elem, i, j, N, encoding):
     nBinDigits = len(format(N-1,'b'))
