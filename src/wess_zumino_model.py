@@ -1,10 +1,7 @@
 from src.ham_to_sparse_matrix import convert_to_matrix
 from src.constants import *
 
-
-
 import sympy as sp
-import scipy.sparse.linalg
 
 class WessZuminoModel:
     # sets up the lattice Wess-Zumino model and constructs 
