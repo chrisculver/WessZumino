@@ -7,7 +7,13 @@ class PauliGate(Enum):
     Z=3
 
     def __mul__(self, other):
-        return PauliString(1.0,str(self)+str(other))
+        if isinstance(other, PauliGate):
+            return PauliString(1.0,str(self)+str(other))
+        elif isinstance(other, float):
+            return PauliString(other, str(self))
+        raise TypeError("Cannot multiply PauliGate with {}".format(type(other)))
+
+    __rmul__=__mul__
 
     def __str__(self):
         return str(self.name)
@@ -22,21 +28,27 @@ class PauliString:
         self.coef=coef
         self.gates=gates
 
+    def __mul__(self, other):
+        if isinstance(other, PauliString):
+            print(self, other)
+            print(type(self), "  ", type(other))
+            self.coef*=other.coef
+            self.gates+=other.gates
+            return self
+        
+        elif isinstance(other, PauliGate):
+            self.gates+=str(other)
+            return self
+        
+        raise TypeError("Cannot multiply PauliString with {}".format(type(other)))
+
     def __eq__(self, other):
         return self.gates==other.gates
     
     def __str__(self):
         return str(self.coef)+"*"+self.gates
-    
+
 # a0 III + a1 IIX + a2 XYZ + ...
 class PauliStringExpr:
     def __init__(self, data):
-        self.expr=data
-
-    def __add__(self, expr):
-        if expr.gates in self.expr:
-            self.expr[expr.gates]+=expr.coef
-            if self.expr[expr.gates]==0:
-                self.expr.pop(expr.gates)
-        else:
-            self.expr[expr.gates]=expr.coef
+        pass

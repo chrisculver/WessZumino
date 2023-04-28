@@ -11,5 +11,7 @@ from src.pauli_strings import I,X,Y,Z,PauliStringExpr,PauliString
 # need _mul_ for PG*PG and float*PG
 # need add for PExpr Pexpr and PS PS and PExpr PS
 # always store as string?
-
+print(1.0*X)
 print(I*X)
+print(2.0*X*I*Z*Y*X*X)
+
