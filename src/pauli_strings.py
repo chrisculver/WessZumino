@@ -6,6 +6,12 @@ class PauliGate(Enum):
     Y=2
     Z=3
 
+    def __mul__(self, other):
+        return PauliString(1.0,str(self)+str(other))
+
+    def __str__(self):
+        return str(self.name)
+
 I=PauliGate.I
 X=PauliGate.X
 Y=PauliGate.Y
@@ -18,6 +24,9 @@ class PauliString:
 
     def __eq__(self, other):
         return self.gates==other.gates
+    
+    def __str__(self):
+        return str(self.coef)+"*"+self.gates
     
 # a0 III + a1 IIX + a2 XYZ + ...
 class PauliStringExpr:

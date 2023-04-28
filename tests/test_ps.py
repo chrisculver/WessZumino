@@ -4,7 +4,12 @@ sys.path.append('..')
 from src.pauli_strings import I,X,Y,Z,PauliStringExpr,PauliString
 
 
-a=PauliString(1.0,[I,X,X,I])
-b=PauliString(-1.0,[I,X,X,I])
+# Ideally I would write code like 
+# expr = 1.5*X*Y*Y*Z + 1.5*I*Y*Y*Z 
+# expr += 0.5*I*I*I*X + 2.5*I*X*X*I
 
-assert PauliStringExpr({b.gates: b.coef})+b==0
+# need _mul_ for PG*PG and float*PG
+# need add for PExpr Pexpr and PS PS and PExpr PS
+# always store as string?
+
+print(I*X)
