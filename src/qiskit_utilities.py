@@ -26,7 +26,6 @@ def matrix_to_qiskit_op(matrix, encoding):
         # really slow to do for every element, maybe do every so often?
     return pauli_strings.reduce()
 
-
 def pauli_string_to_dict(ps):
     pauli_dict = defaultdict(complex)
     ps = expand(ps)

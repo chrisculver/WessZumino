@@ -14,7 +14,7 @@ class WessZuminoModel:
 
         bosonNI=sp.expand( pn**2/(2*aLat) + (aLat/2)*((qnP1-qnM1)/(2*aLat))**2 )
         bosonI=sp.expand( (aLat/2)*V(qn)**2 + aLat*V(qn)*(qnP1-qnM1)/(4*aLat) + aLat*(qnP1-qnM1)*V(qn)/(4*aLat) )
-        fermionNI=sp.expand( -(xdnP1*xn+xdn*xnP1)/(2*aLat) )
+        fermionNI=sp.expand( (xdnP1*xn+xdn*xnP1)/(2*aLat) )
         fermionI=sp.expand( sp.diff(V(qn),qn)*(xdn*xn-(1/2)) )
 
         self.aVal=1  # value of lattice spacing

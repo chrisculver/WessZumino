@@ -15,21 +15,29 @@ import scipy.sparse.linalg
 
 N=2
 hoHam,aops, adags, xs, xdags = get_sympy_ham(N)
-cutoff=2 # 8 is more then a minute?
+cutoff=16 # 8 is more then a minute?
 hamMat=convert_to_matrix(hoHam,cutoff,N,aops,adags,xs,xdags)
 
-t=Timer("Matrix to PS")
-t.start()
-for i in range(10):
-    ps=new_matrix_to_op(hamMat,standard_encode)
-t.stop()
+#t=Timer("OLD Matrix to PS")
+#t.start()
+#for i in range(10):
+#    ps=matrix_to_pauli_strings(hamMat, standard_encode)
+#t.stop()
 
-print(new_matrix_to_op(hamMat, standard_encode))
+#print(ps)
+
+#t=Timer("Matrix to QISKIT PS")
+#t.start()
+#for i in range(10):
+#    ps=new_matrix_to_op(hamMat,standard_encode)
+#t.stop()
+
+#print(new_matrix_to_op(hamMat, standard_encode))
 
 t=Timer("Matrix to PSE")
 t.start()
-for i in range(10):
-    ps=matrix_to_pse(hamMat, standard_encode) 
+#for i in range(10):
+ps=matrix_to_pse(hamMat, standard_encode) 
 t.stop()
 
-print(matrix_to_pse(hamMat, standard_encode))
+print(ps)

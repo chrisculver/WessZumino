@@ -19,8 +19,7 @@ from enum import Enum
 #     the exponential scaling is bad if you think the final result will 
 #     be sparse in the types of pauli gates, I don't have an idea at 
 #     the moment if random PSE's are like this
-#     
-
+#    
 
 class PauliGate(Enum):
     I=0
@@ -31,7 +30,7 @@ class PauliGate(Enum):
     def __mul__(self, other):
         if isinstance(other, PauliGate):
             return PauliString(1.0,str(self)+str(other))
-        elif isinstance(other, float):
+        elif isinstance(other, (int,float,complex)):
             return PauliString(other, str(self))
         raise TypeError("Cannot multiply PauliGate with {}".format(type(other)))
 
@@ -52,15 +51,15 @@ class PauliString:
 
     def __mul__(self, other):
         if isinstance(other, PauliString):
-            print(self, other)
-            print(type(self), "  ", type(other))
-            self.coef*=other.coef
-            self.gates+=other.gates
-            return self
+            #print(self, other)
+            #print(type(self), "  ", type(other))
+            #self.coef*=other.coef
+            #self.gates+=other.gates
+            return PauliString(self.coef*other.coef, self.gates+other.gates)
         
         elif isinstance(other, PauliGate):
-            self.gates+=str(other)
-            return self
+            #self.gates+=str(other)
+            return PauliString(self.coef,self.gates+str(other))
         
         raise TypeError("Cannot multiply PauliString with {}".format(type(other)))
 
@@ -70,6 +69,9 @@ class PauliString:
     def __add__(self,other):
         return PauliStringExpr({self.gates: self.coef, other.gates: other.coef})
 
+    def __sub__(self,other):
+        return PauliStringExpr({self.gates: self.coef, other.gates: -other.coef})
+
     def __str__(self):
         return str(self.coef)+"*"+self.gates
 
@@ -78,6 +80,15 @@ class PauliStringExpr:
     def __init__(self, data):
         self.data=data
     
+    def to_list(self):
+        res=[]
+        for gates,coef in self.data.items():
+            res.append(PauliString(coef,gates))
+        return res
+    
+    def to_dict(self):
+        return self.data
+
     def __add__(self,other):
         #print("Adding {} and {}".format(self,other))
         if isinstance(other, PauliString):
@@ -127,14 +138,20 @@ class PauliStringExpr:
             return self 
     
         elif isinstance(other, PauliStringExpr):
-            for gates, coef in other.items():
-                pass
-            return self
+            selfList = self.to_list()
+            otherList = other.to_list()
+            res={}
+            for selfPS in selfList:
+                for otherPS in otherList:
+                    ps = selfPS*otherPS 
+                    #print("{} * {} = {}".format(selfPS,otherPS,ps))
+                    res[ps.gates]=ps.coef
+
+            return PauliStringExpr(res)
 
         else: 
             raise TypeError("Cannot mul PauliStringExpr with {}".format(type(other)))
 
-    # TODO: Is this correct?
     __rmul__=__mul__
 
     def __str__(self):
