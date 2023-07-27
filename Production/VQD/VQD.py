@@ -55,12 +55,22 @@ maxiter=10000
 target = float(sys.argv[5])
 tag = round(math.log10(target))
 run = int(sys.argv[6])
-betas=[2,2,2]
+if k == 3:      # TODO: Generalize
+    betas=[2,2,2]
+elif k==5:
+    betas=[2,2,2,2,2]
+else:
+    print("ERROR: Only set up for 3 and 5 eigenvalues so far, not %d" % k)
 outfile="%s_N%d_L%d_k%d_tol%d-run%d.pdf" % (pot_tag, N, cutoff, k, tag, run)
 
 print("Linear prepotential with %d sites and cutoff %d" % (N, cutoff))
 print("VQD search for %d energies with tolerance %0.1e" % (k, target))
-print("Hard-coded maxiter=10000 and betas=[2,2,2]")
+if k == 3:      # TODO: Generalize
+    print("Hard-coded maxiter=10000 and betas=[2,2,2]")
+elif k==5:
+    print("Hard-coded maxiter=10000 and betas=[2,2,2,2,2]")
+else:
+    print("ERROR: Only set up for 3 and 5 eigenvalues so far, not %d" % k)
 # ------------------------------------------------------------------
 
 
@@ -72,8 +82,8 @@ def potential(self, n):
         # m*q with m=1
         return -self.mass*self.qs[n]
     elif pot_tag == "quad":
-        print("ERROR: Quadratic prepotential not yet implemented")
-        sys.exit(1)
+        # g*q^2 + c with g=1 and c=0
+        return -self.mass*self.qs[n]*self.qs[n]
     else:
         print("ERROR: Unrecognized potential %s" % pot_tag)
         sys.exit(1)
