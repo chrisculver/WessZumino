@@ -79,11 +79,11 @@ else:
 # Construct 
 def potential(self, n):
     if pot_tag == "linear":
-        # m*q with m=1
-        return -self.mass*self.qs[n]
+        # m*q with m set below
+        return self.mass*self.qs[n]
     elif pot_tag == "quad":
         # g*q^2 + c with g=1 and c=0
-        return -self.mass*self.qs[n]*self.qs[n]
+        return self.qs[n]*self.qs[n]
     else:
         print("ERROR: Unrecognized potential %s" % pot_tag)
         sys.exit(1)
