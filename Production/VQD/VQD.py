@@ -35,7 +35,7 @@ import matplotlib.lines as mlines
 
 # ------------------------------------------------------------------
 # Parse arguments:
-#   Choice of prepotential (only linear case implemented so far)
+#   Choice of prepotential (only linear and quadratic implemented so far)
 #   Number of sites
 #   Boson cutoff
 #   Number of eigenvalues to find
@@ -63,7 +63,7 @@ else:
     print("ERROR: Only set up for 3 and 5 eigenvalues so far, not %d" % k)
 outfile="%s_N%d_L%d_k%d_tol%d-run%d.pdf" % (pot_tag, N, cutoff, k, tag, run)
 
-print("Linear prepotential with %d sites and cutoff %d" % (N, cutoff))
+print("%s prepotential with %d sites and cutoff %d" % (pot_tag, N, cutoff))
 print("VQD search for %d energies with tolerance %0.1e" % (k, target))
 if k == 3:      # TODO: Generalize
     print("Hard-coded maxiter=10000 and betas=[2,2,2]")
@@ -76,7 +76,7 @@ else:
 
 
 # ------------------------------------------------------------------
-# Construct 
+# Construct hamiltonian as matrix, Pauli string and operator
 def potential(self, n):
     if pot_tag == "linear":
         # m*q with m set below
@@ -120,8 +120,8 @@ print("nq = %d" % nq, flush=True)
 # ------------------------------------------------------------------
 # Set up estimator and ansatz
 estimator = Estimator()
-sampler=Sampler()
-fidelity=ComputeUncompute(sampler)
+sampler = Sampler()
+fidelity = ComputeUncompute(sampler)
 
 ansatz = RealAmplitudes(nq, entanglement='circular', reps=2)
 
