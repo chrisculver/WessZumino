@@ -26,7 +26,6 @@ from qiskit.algorithms.state_fidelities import ComputeUncompute
 import json
 import numpy as np
 import sympy as sp
-import scipy.sparse.linalg
 import matplotlib.pyplot as plt
 import matplotlib.lines as mlines
 # ------------------------------------------------------------------
@@ -35,6 +34,7 @@ import matplotlib.lines as mlines
 
 # ------------------------------------------------------------------
 # Parse arguments:
+#   Choice of boundary conditions (dirichlet, periodic, ...)
 #   Choice of prepotential (only linear and quadratic implemented so far)
 #   Number of sites
 #   Boson cutoff
@@ -42,19 +42,21 @@ import matplotlib.lines as mlines
 #   Tolerance of VQD
 #   Label for output pdf
 #   TODO: maxiter; betas; ansatz reps; potential parameters...
-if len(sys.argv) < 7:
+if len(sys.argv) < 8:
     print("Usage: %s " % str(sys.argv[0]), end='')
-    print("<potential> <num_sites> <cutoff> <num_eigvals> <tol> <count>")
+    print("<BCs> <potential> <num_sites> <cutoff>")
+    print("<num_eigvals> <tol> <count>")
     sys.exit(1)
 
-pot_tag = str(sys.argv[1])
-N = int(sys.argv[2])
-cutoff = int(sys.argv[3])
-k = int(sys.argv[4])
+BCs = str(sys.argv[1])
+pot_tag = str(sys.argv[2])
+N = int(sys.argv[3])
+cutoff = int(sys.argv[4])
+k = int(sys.argv[5])
 maxiter=10000
-target = float(sys.argv[5])
+target = float(sys.argv[6])
 tag = round(math.log10(target))
-run = int(sys.argv[6])
+run = int(sys.argv[7])
 if k == 3:      # TODO: Generalize
     betas=[2,2,2]
 elif k==5:
@@ -63,8 +65,8 @@ else:
     print("ERROR: Only set up for 3 and 5 eigenvalues so far, not %d" % k)
 outfile="%s_N%d_L%d_k%d_tol%d-run%d.pdf" % (pot_tag, N, cutoff, k, tag, run)
 
-print("%s prepotential with %d sites and cutoff %d" % (pot_tag, N, cutoff))
-print("VQD search for %d energies with tolerance %0.1e" % (k, target))
+print("%s prepotential with %d sites, " % (pot_tag, N), end='')
+print("%s BCs and cutoff %d" % (BCs, cutoff))
 if k == 3:      # TODO: Generalize
     print("Hard-coded maxiter=10000 and betas=[2,2,2]")
 elif k==5:
@@ -88,16 +90,20 @@ def potential(self, n):
         print("ERROR: Unrecognized potential %s" % pot_tag)
         sys.exit(1)
     print("ERROR: Should never reach this part of 'potential' def")
+    sys.exit(1)
     return np.nan * self.qs[n]
 
-wz=WessZuminoModel(N,1.0,potential,'dirichlet')
+# Check BCs sanity
+if BCs not in ['dirichlet', 'periodic']:
+    print("ERROR: Unrecognized BCs %s" % BCs)
+    sys.exit(1)
+
+wz = WessZuminoModel(N, 1.0, potential, BCs)
 
 runtime = -time.time()
 wz.construct_ham_matrix(cutoff)
 runtime += time.time()
 print("%0.1f seconds to construct hamiltonian" % runtime)
-
-#e0=scipy.sparse.linalg.eigs(wz.hamMat,k=1,sigma=0.0)[0]
 
 runtime = -time.time()
 ps=matrix_to_pse(wz.hamMat, standard_encode)

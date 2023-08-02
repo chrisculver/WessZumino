@@ -8,11 +8,13 @@ import sys
 sys.path.append('../..')
 
 from src.wess_zumino_model import WessZuminoModel
+from src.matrix_to_ps import matrix_to_pse
+from src.binary_encodings import standard_encode
+from src.qiskit_utilities import pauli_dict_to_op, op_to_trotter
 
 import json
 import numpy as np
 import sympy as sp
-import scipy.sparse.linalg
 # ------------------------------------------------------------------
 
 
@@ -23,27 +25,24 @@ import scipy.sparse.linalg
 #   Choice of prepotential (only linear and quadratic implemented so far)
 #   Number of sites
 #   Boson cutoff
-#   Number of eigenvalues to find
-if len(sys.argv) < 6:
+if len(sys.argv) < 5:
     print("Usage: %s " % str(sys.argv[0]), end='')
-    print("<BCs> <potential> <num_sites> <cutoff> <num_eigvals>")
+    print("<BCs> <potential> <num_sites> <cutoff>")
     sys.exit(1)
 
 BCs = str(sys.argv[1])
 pot_tag = str(sys.argv[2])
 N = int(sys.argv[3])
 cutoff = int(sys.argv[4])
-k = int(sys.argv[5])
 
 print("%s prepotential with %d sites, " % (pot_tag, N), end='')
 print("%s BCs and cutoff %d" % (BCs, cutoff))
-print("Sparse computation of lowest %d energies" % k)
 # ------------------------------------------------------------------
 
 
 
 # ------------------------------------------------------------------
-# Construct hamiltonian as matrix
+# Construct hamiltonian as matrix, convert to Pauli strings
 def potential(self, n):
     if pot_tag == "linear":
         # m*q with m set below
@@ -71,13 +70,13 @@ runtime += time.time()
 print("%0.1f seconds to construct hamiltonian" % runtime)
 
 runtime = -time.time()
-temp = scipy.sparse.linalg.eigs(wz.hamMat, k=k, sigma=0.0)[0]
+ps=matrix_to_pse(wz.hamMat, standard_encode)
 runtime += time.time()
-print("%0.1f seconds for sparse solve" % runtime)
+print("%0.1f seconds to convert to Pauli string" % runtime)
 
-eigs = np.sort(temp)
-for i in range(k):
-    print("e%d = %.8g" % (i, eigs[i].real))
-    if np.abs(eigs[i].imag) > 1e-4:
-      print("Warning: Im(e%d) = %.4g" % (i, eigs[i].imag))
+array = str(ps).split('+(') # TODO: Avoid '+' in complex coefficients
+print("%d terms in Pauli string expression:" % len(array))
+print("  %s" % array[0])
+for i in range(1, len(array)):
+  print("  (%s" % array[i])
 # ------------------------------------------------------------------
