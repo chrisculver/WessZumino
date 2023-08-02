@@ -44,7 +44,7 @@ import matplotlib.lines as mlines
 #   TODO: maxiter; betas; ansatz reps; potential parameters...
 if len(sys.argv) < 8:
     print("Usage: %s " % str(sys.argv[0]), end='')
-    print("<BCs> <potential> <num_sites> <cutoff>")
+    print("<BCs> <potential> <num_sites> <cutoff> ", end='')
     print("<num_eigvals> <tol> <count>")
     sys.exit(1)
 
@@ -63,7 +63,8 @@ elif k==5:
     betas=[2,2,2,2,2]
 else:
     print("ERROR: Only set up for 3 and 5 eigenvalues so far, not %d" % k)
-outfile="%s_N%d_L%d_k%d_tol%d-run%d.pdf" % (pot_tag, N, cutoff, k, tag, run)
+outfile = "%s/%s_N%d_L%d_k%d_tol%d-run%d.pdf" \
+          % (BCs, pot_tag, N, cutoff, k, tag, run)
 
 print("%s prepotential with %d sites, " % (pot_tag, N), end='')
 print("%s BCs and cutoff %d" % (BCs, cutoff))
@@ -130,6 +131,7 @@ sampler = Sampler()
 fidelity = ComputeUncompute(sampler)
 
 ansatz = RealAmplitudes(nq, entanglement='circular', reps=2)
+#print(ansatz)
 
 counts=[]
 values=[]
