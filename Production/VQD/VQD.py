@@ -126,6 +126,9 @@ print("nq = %d" % nq, flush=True)
 
 # ------------------------------------------------------------------
 # Set up estimator and ansatz
+# Since number of shots not specified,
+# Estimator calculates the exact expectation values
+# while Sampler calculates probabilities
 estimator = Estimator()
 sampler = Sampler()
 fidelity = ComputeUncompute(sampler)

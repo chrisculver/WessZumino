@@ -12,7 +12,9 @@ from src.wess_zumino_model import WessZuminoModel
 import json
 import numpy as np
 import sympy as sp
+import scipy.linalg
 import scipy.sparse.linalg
+from scipy.sparse import csr_matrix
 # ------------------------------------------------------------------
 
 
@@ -74,10 +76,22 @@ runtime = -time.time()
 temp = scipy.sparse.linalg.eigs(wz.hamMat, k=k, sigma=0.0)[0]
 runtime += time.time()
 print("%0.1f seconds for sparse solve" % runtime)
-
 eigs = np.sort(temp)
 for i in range(k):
-    print("e%d = %.8g" % (i, eigs[i].real))
+    print("  Sparse e%d = %.8g" % (i, eigs[i].real))
     if np.abs(eigs[i].imag) > 1e-4:
-      print("Warning: Im(e%d) = %.4g" % (i, eigs[i].imag))
+      print("  Warning: Im(e%d) = %.4g" % (i, eigs[i].imag))
+#print("Turned off sparse solve to avoid singular factor runtime error")
+
+runtime = -time.time()
+dense = csr_matrix(wz.hamMat)
+temp = scipy.linalg.eigvals(dense.todense())
+runtime += time.time()
+print("%0.1f seconds for full solve" % runtime)
+eigs = np.sort(temp)
+for i in range(k):
+    print("  Full e%d = %.8g" % (i, eigs[i].real))
+    if np.abs(eigs[i].imag) > 1e-4:
+      print("  Warning: Im(e%d) = %.4g" % (i, eigs[i].imag))
+#print("Turned off full solve to avoid overwhelming system")
 # ------------------------------------------------------------------
