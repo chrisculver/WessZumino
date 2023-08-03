@@ -171,6 +171,6 @@ for i in range(1,k+1):
 plt.xlabel(r'Iteration')
 plt.ylabel(r'$E$')
 plt.yscale('log')
-plt.legend(loc='upper right')
+#plt.legend(loc='upper right')
 plt.savefig(outfile, bbox_inches='tight')
 # ------------------------------------------------------------------
